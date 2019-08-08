@@ -34,6 +34,7 @@ class ActionRe(ActionReUI):
         if data is None:
             self.timer.stop()
             self.set_default_image()
+            self.clear_views()
         else:
             self.clear_views()
             # 大图
