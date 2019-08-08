@@ -37,13 +37,14 @@ def load_local_data():
         i += 1
         return {'img_b': img_b,
                 'pose': pose,
-                'boundingBox': [39, 917, 336, 886],
-                'nameAndAction': ['葛某', '走']}
+                'boundingBox': [[39, 917, 336, 886]]*5,
+                'nameAndAction': [['葛某', '走']]*5}
     return iner
 
 
 # for test
 get_data = load_local_data()
+# get_data = lambda: None
 
 
 if __name__ == '__main__':
@@ -53,4 +54,5 @@ if __name__ == '__main__':
     # img_np = np.frombuffer(img_b, dtype=np.uint8)
     # img_cv = cv2.imdecode(img_np, cv2.IMREAD_ANYCOLOR)
     # img_clip = img_cv[39:39+886, 917:917+336]
-    load_local_data()
+    b = load_local_data()()
+    print('a')

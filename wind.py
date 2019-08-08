@@ -1,92 +1,38 @@
 import sys
-from PyQt5.QtCore import Qt, QRect, QSize, QTimer, QBasicTimer
-from PyQt5.QtWidgets import (QWidget, QLCDNumber, QSlider,QFrame,
-    QVBoxLayout, QApplication, QMainWindow, QHBoxLayout, QLabel, QGraphicsItem, QGridLayout)
-from PyQt5.QtGui import QPixmap, QImage
-import utils
-import Visualization
-import cv2
-import matplotlib.pyplot as plt
-import struct
-from PIL import Image
-from io import BytesIO
-from io import BytesIO
+from PyQt5.QtCore import QBasicTimer
+from PyQt5.QtWidgets import QWidget, QFrame, QApplication, QLabel
+from PyQt5.QtGui import QPixmap
+import time
 
 
-class ActionRe(QWidget):
+class View(QFrame):
 
-    def __init__(self):
-        super().__init__()
-        self.lb = QLabel(self)
+    __views_count__ = 0
+
+    def __new__(cls, *args, **kwargs):
+        cls.__views_count__ += 1
+        return super().__new__(cls)
+
+    def __init__(self, parent, img: QPixmap = None, person: str = '', action: str = ''):
+        super().__init__(parent=parent)
+        self.setObjectName(str(View.__views_count__) + str(time.time()))
         self.view_img = QLabel(self)
         self.view_tag_per = QLabel(self)
         self.view_tag_ac = QLabel(self)
+        self.set_image(img)
+        self.set_person(person)
+        self.set_action(action)
         self.initUI()
-        self.set_data()
-        self.timer = QBasicTimer()
-        self.timer.start(1000, self)
 
     def initUI(self):
-        self.resize(1120, 630)
+        self.view_img.setGeometry(20, 15, 60, 60)
+        self.view_tag_per.setGeometry(90, 20, 50, 20)
+        self.view_tag_ac.setGeometry(90, 50, 50, 20)
 
-        self.lb.setLineWidth(0)
-        self.lb.setGeometry(0, 0, 960, 540)
-        self.lb.setStyleSheet("border: 0px")
-        self.lb.setScaledContents(True)
-        self.set_default_image()
-
-        self.view_img.setGeometry(960+20, 15, 60, 60)
-        self.view_tag_per.setGeometry(960+90, 20, 50, 20)
-        self.view_tag_ac.setGeometry(960+90, 50, 50, 20)
-
-        self.show()
-
-    def timerEvent(self, a0):
-        self.set_next_data()
-
-    def set_default_image(self):
-        pix = QPixmap(960, 540)
-        pix.fill(Qt.gray)
-        self.lb.setPixmap(pix)
-        self.view_img.clear()
-
-    def set_data(self):
-        data = utils.get_data()
-
-        if data is None:
-            self.timer.stop()
-            self.set_default_image()
-            self.set_view_person()
-            self.set_view_action()
-        else:
-            # 大图
-            img_b = data['img_b']
-            pose = data['pose']
-            img_np = Visualization.np.frombuffer(img_b, Visualization.np.uint8)
-            img_cv = cv2.imdecode(img_np, cv2.IMREAD_ANYCOLOR)
-            img_cv = Visualization.render(img_cv, pose, Visualization.RENDER_CONFIG_OPENPOSE)
-            cv2.imwrite('s.jpg', img_cv)
-            img_cv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
-            pix = Image.fromarray(img_cv).toqpixmap()
-            self.lb.setPixmap(pix)
-            # 小图
-            top, left, width, height = data['boundingBox']
-            img_flip = img_cv[top:top+height, left:left+width]
-            person, action = data['nameAndAction']
-            self.set_view_image(Image.fromarray(img_flip).toqpixmap())
-            self.set_view_person(person)
-            self.set_view_action(action)
-
-    def set_next_data(self):
-        self.set_data()
-
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_Escape:
-            self.close()
-        if e.key() == Qt.Key_Space:
-            self.set_next_data()
-
-    def set_view_image(self, img: QPixmap):
+    def set_image(self, img: QPixmap = None):
+        if img is None:
+            self.view_img.clear()
+            return
         w = img.size().width()
         h = img.size().height()
         if w > h:
@@ -95,15 +41,41 @@ class ActionRe(QWidget):
             pix = img.scaledToHeight(60)
         self.view_img.setPixmap(pix)
 
-    def set_view_action(self, ac: str = ''):
+    def set_person(self, per: str = ''):
+        self.view_tag_per.setText(per)
+
+    def set_action(self, ac: str = ''):
         self.view_tag_ac.setText(ac)
 
-    def set_view_person(self, per: str = ''):
-        self.view_tag_per.setText(per)
+    def set_default_geometry(self):
+        y = (View.__views_count__ - 1)*90
+        self.setGeometry(960, y, 160, 90)
+
+    def set_remove(self):
+        View.__views_count__ -= 1
+        self.setParent(None)
+        self.deleteLater()
+
+
+class ActionReUI(QWidget):
+
+    def __init__(self):
+        super(QWidget, self).__init__()
+        self.lb = QLabel(self)
+        self.timer = QBasicTimer()
+        self.initUI()
+
+    def initUI(self):
+        self.resize(1120, 630)
+
+        self.lb.setLineWidth(0)
+        self.lb.setGeometry(0, 0, 960, 540)
+        self.lb.setStyleSheet("border: 0px")
+        self.lb.setScaledContents(True)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = ActionRe()
+    ex = ActionReUI()
     ex.show()
     sys.exit(app.exec_())
