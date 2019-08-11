@@ -1,8 +1,22 @@
 import sys
 from PyQt5.QtCore import QBasicTimer
-from PyQt5.QtWidgets import QWidget, QFrame, QApplication, QLabel
+from PyQt5.QtWidgets import QWidget, QFrame, QApplication, QLabel, QPushButton
 from PyQt5.QtGui import QPixmap
 import time
+from mylog import QPlainTextEditLogger
+import logging
+
+
+# class LogView(QWidget):
+#
+#     def __init__(self, *args):
+#         super().__init__(*args)
+#         log_handler = QPlainTextEditLogger(self)
+#         self.logger = logging.getLogger(__name__)
+#         self.logger.addHandler(log_handler)
+#
+#     def initUI(self):
+#         self.setWindowTitle('Log View')
 
 
 class View(QFrame):
@@ -62,8 +76,11 @@ class ActionReUI(QWidget):
     def __init__(self):
         super(QWidget, self).__init__()
         self.lb = QLabel(self)
+        self.btn = QPushButton('show skeleton', self)
         self.timer = QBasicTimer()
+        # self.log_view = LogView()
         self.initUI()
+        # self.log_view.logger.info('sadsad')
 
     def initUI(self):
         self.resize(1120, 630)
@@ -72,6 +89,16 @@ class ActionReUI(QWidget):
         self.lb.setGeometry(0, 0, 960, 540)
         self.lb.setStyleSheet("border: 0px")
         self.lb.setScaledContents(True)
+
+        self.btn.setCheckable(True)
+        self.btn.setGeometry(20, 570, 150, 40)
+        self.btn.clicked.connect(self.btnClickedEvent)
+
+        # self.log_view.setGeometry(300, 300, 300, 300)
+        # self.log_view.show()
+
+    def btnClickedEvent(self, pressed):
+        pass
 
 
 if __name__ == '__main__':
