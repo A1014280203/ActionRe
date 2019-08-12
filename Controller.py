@@ -2,7 +2,6 @@
 from PyQt5.QtCore import QBasicTimer
 import Utils
 from PyQt5.QtCore import QObject
-import Visualization
 import cv2
 import numpy as np
 
@@ -12,7 +11,6 @@ class Controller(QObject):
         super(Controller, self).__init__()
         self.__model = model
         self.__timer = QBasicTimer()
-        self.__showSkeleton = True
         self.logger = logger
 
     def route(self, msg1, msg2):
@@ -24,17 +22,9 @@ class Controller(QObject):
         :return: 无
         '''
 
-        {"startTimer": self.startTimer,
-         "alterPoseState": self.alterPoseState,
-         }[msg1](msg2)
+        {"startTimer": self.startTimer}[msg1](msg2)
         # log example
         self.logger.info('from {0}'.format(self.__class__.__name__))
-
-    def alterPoseState(self, msg):
-        if msg == "show skeleton":
-            self.__showSkeleton = True
-        else:
-            self.__showSkeleton = False
 
     def startTimer(self, msg):
         ''' 开启定时器
@@ -68,32 +58,11 @@ class Controller(QObject):
                 'nameAndAction': [['葛某', '走'], ['葛某', '走']]
                 }
         '''
-        imgArray = np.frombuffer(data['img_b'], Visualization.np.uint8)
+        imgArray = np.frombuffer(data.pop('img_b'), np.uint8)
         imgNdarray = cv2.imdecode(imgArray, cv2.IMREAD_ANYCOLOR)
         imgNdarray = cv2.cvtColor(imgNdarray, cv2.COLOR_BGR2RGB)
-        result = {
-            'img': (self.drawPose(imgNdarray, data['pose']) if self.__showSkeleton else imgNdarray),
-            'boundingBox': self.cutImage(imgNdarray, data['boundingBox']),
-            'nameAndAction': data['nameAndAction']
-        }
-
-        return result
-
-    def drawPose(self, imgNdarray: np.ndarray, pose: np.ndarray):
-        imgNdarray = Visualization.render(imgNdarray, pose, Visualization.RENDER_CONFIG_OPENPOSE, False)
-        return imgNdarray
-
-    def cutImage(self, imgNdarray, boundingBoxs):
-        cuts = []
-        for boundingBox in boundingBoxs:
-            top, left, width, height = boundingBox
-            img_cut = imgNdarray[top:top + height, left:left + width]
-            cuts.append(img_cut)
-        return cuts
+        data['img'] = imgNdarray
+        return data
 
     def timerEvent(self, a0):
         self.onSetData()
-
-
-if __name__ == '__main__':
-    pass

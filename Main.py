@@ -8,8 +8,11 @@ from Model import Model
 from PIL import Image
 import time
 from MyLog import logging, QPlainTextEditLogger
+import Visualization
+import numpy as np
 
 
+# 自定义组件
 class CaptureView(QFrame):
 
     __viewsCount = 0
@@ -66,6 +69,7 @@ class CaptureView(QFrame):
         cls.__views = []
 
 
+# 窗口
 class ActionRe(QWidget):
     # 初始化成功的信号
     view2Contr = pyqtSignal(str, str)
@@ -81,6 +85,7 @@ class ActionRe(QWidget):
         self.btn = QPushButton('no skeleton', self)
         self.btn.clicked.connect(self.buttonClicked)
         self.logger = logger
+        self.__showSkeleton = True
         self.initUI()
 
     def initUI(self):
@@ -108,27 +113,47 @@ class ActionRe(QWidget):
         ''' 更新界面中的内容
 
         :param data:{
-                    'img': ndarray(画上姿态的图片),
-                    'boundingBox': [ndarray(未画上姿态的框内图片)],
+                    'img': ndarray,
+                    'pose': ndarray,
+                    'boundingBox': [Rect[]],
                     'nameAndAction': [['葛某', '走']]
                 }
         :return: 无
         '''
-        img = data['img']
-        pix = Image.fromarray(img).toqpixmap()
-        self.lb.setPixmap(pix)
+        # 先处理右侧小图
         CaptureView.clearViews()
-        boundingBox = data['boundingBox']
-        nameAndActioin = data['nameAndAction']
-        for img, tags in zip(boundingBox, nameAndActioin):
+        imgs = self.cutImage(data['img'], data['boundingBox'])
+        nameAndActioins = data['nameAndAction']
+        for img, tags in zip(imgs, nameAndActioins):
             CaptureView(self, Image.fromarray(img).toqpixmap(), *tags).show()
+        # 处理大图
+        if self.__showSkeleton:
+            self.drawPose(data['img'], data['pose'])
+        pix = Image.fromarray(data['img']).toqpixmap()
+        self.lb.setPixmap(pix)
+
+    def drawPose(self, imgNdarray: np.ndarray, pose: np.ndarray):
+        imgNdarray = Visualization.render(imgNdarray, pose, Visualization.RENDER_CONFIG_OPENPOSE, True)
+        return imgNdarray
+
+    def cutImage(self, imgNdarray, boundingBoxs):
+        cuts = []
+        for boundingBox in boundingBoxs:
+            top, left, width, height = boundingBox
+            img_cut = imgNdarray[top:top + height, left:left + width]
+            cuts.append(img_cut)
+        return cuts
 
     def buttonClicked(self, pressed):
-        self.view2Contr.emit("alterPoseState", self.btn.text())
+        # self.view2Contr.emit("alterPoseState", self.btn.text())
         if pressed:
+            self.__showSkeleton = False
             self.btn.setText('show skeleton')
+            self.getData()
         else:
+            self.__showSkeleton = True
             self.btn.setText('no skeleton')
+            self.getData()
 
 
 if __name__ == '__main__':
