@@ -4,7 +4,6 @@ import Utils
 from PyQt5.QtCore import QObject
 import Visualization
 import cv2
-from PIL import Image
 import numpy as np
 
 
@@ -13,7 +12,7 @@ class Controller(QObject):
         super(Controller, self).__init__()
         self.__model = model
         self.__timer = QBasicTimer()
-        self.__poseEnable = True
+        self.__showSkeleton = True
         self.logger = logger
 
     def route(self, msg1, msg2):
@@ -33,9 +32,9 @@ class Controller(QObject):
 
     def alterPoseState(self, msg):
         if msg == "show skeleton":
-            self.__poseEnable = True
+            self.__showSkeleton = True
         else:
-            self.__poseEnable = False
+            self.__showSkeleton = False
 
     def startTimer(self, msg):
         ''' 开启定时器
@@ -73,7 +72,7 @@ class Controller(QObject):
         imgNdarray = cv2.imdecode(imgArray, cv2.IMREAD_ANYCOLOR)
         imgNdarray = cv2.cvtColor(imgNdarray, cv2.COLOR_BGR2RGB)
         result = {
-            'img': (self.drawPose(imgNdarray, data['pose']) if self.__poseEnable else imgNdarray),
+            'img': (self.drawPose(imgNdarray, data['pose']) if self.__showSkeleton else imgNdarray),
             'boundingBox': self.cutImage(imgNdarray, data['boundingBox']),
             'nameAndAction': data['nameAndAction']
         }
