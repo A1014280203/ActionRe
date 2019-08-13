@@ -80,10 +80,10 @@ class CaptureViewPanel(object):
         :return:
         """
         [v.hide() for v in self.__views]
-        for v, img, tags in zip_longest(self.__views, data['img'], data['nameAndAction'], fillvalue=None):
-            if v and img is not None:
+        for v, img, tags in zip_longest(self.__views[:len(data['img'])], data['img'], data['nameAndAction'], fillvalue=None):
+            if v:
                 v.setData(data['parent'], Image.fromarray(img).toqpixmap(), tags)
-            elif img is not None:
+            else:
                 v = CaptureView(data['parent'], Image.fromarray(img).toqpixmap(), *tags)
                 v.show()
                 self.__views.append(v)
