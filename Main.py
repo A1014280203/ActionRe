@@ -1,7 +1,7 @@
 # coding=utf-8
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFrame, QPushButton
-from PyQt5.QtGui import QPixmap, QImage
+from PyQt5.QtGui import QPixmap
 from Controller import Controller
 from PyQt5.QtCore import pyqtSignal
 from Model import Model
@@ -15,18 +15,9 @@ import numpy as np
 # 自定义组件
 class CaptureView(QFrame):
 
-    __viewsCount = 0
-    __views = []
-
-    def __new__(cls, *args, **kwargs):
-        cls.__viewsCount += 1
-        ins = super().__new__(cls)
-        cls.__views.append(ins)
-        return ins
-
     def __init__(self, parent, img: QPixmap = None, person: str = '', action: str = ''):
         super().__init__(parent=parent)
-        self.setObjectName(str(CaptureView.__viewsCount) + str(time.time()))
+        self.setObjectName(str(time.time()))
         self.__viewImg = QLabel(self)
         self.__viewTagPer = QLabel(self)
         self.__viewTagAc = QLabel(self)
@@ -38,8 +29,9 @@ class CaptureView(QFrame):
         self.__viewImg.setGeometry(20, 15, 60, 60)
         self.__viewTagPer.setGeometry(90, 20, 50, 20)
         self.__viewTagAc.setGeometry(90, 50, 50, 20)
-        y = (CaptureView.__viewsCount - 1) * 90
-        self.setGeometry(960, y, 160, 90)
+        self.resize(160, 90)
+        # y = (CaptureView.__viewsCount - 1) * 90
+        # self.setGeometry(960, y, 160, 90)
 
     def setImage(self, img: QPixmap = None):
         if img is None:
@@ -58,15 +50,49 @@ class CaptureView(QFrame):
         self.__viewTagAc.setText(ac)
 
     def setRemoveFlag(self):
-        CaptureView.__viewsCount -= 1
-        self.setParent(None)
-        self.deleteLater()
+        # CaptureView.__viewsCount -= 1
+        # self.setParent(None)
+        # self.deleteLater()
+        raise NotImplementedError("Instance will be controlled by instance of class CaptureViewPanel")
 
-    @classmethod
-    def clearViews(cls):
-        for v in cls.__views:
-            v.setRemoveFlag()
-        cls.__views = []
+
+class CaptureViewPanel(object):
+
+    def __init__(self):
+        self.__views = []
+
+    def setData(self, data):
+        """
+
+        :param data: {
+                "parent": parent window,
+                "img": [np.ndarray,],
+                "nameAndAction": [[str, str],],
+                "pos":[(x, y),] # if empty, default pos will be applied
+                }
+        :return:
+        """
+
+        for v, img, tags in zip(self.__views, data['img'], data['nameAndAction']):
+            v.setParent(data['parent'])
+            v.setImage(Image.fromarray(img).toqpixmap())
+            v.setTags(*tags)
+            v.show()
+        if len(data['img']) < len(self.__views):
+            for v in self.__views[len(data['img']):]:
+                v.hide()
+        if len(data['img']) > len(self.__views):
+            for img, tags in zip(data['img'][len(self.__views):], data['nameAndAction'][len(self.__views):]):
+                v = CaptureView(data['parent'], Image.fromarray(img).toqpixmap(), *tags)
+                v.show()
+                self.__views.append(v)
+        # 需要考虑是否提供了坐标，所以单独处理
+        if 'pos' in data and data['pos']:
+            for v, pos in zip(self.__views, data['pos']):
+                v.move(*pos)
+        else:
+            for i in range(len(self.__views)):
+                self.__views[i].move(960, i*90)
 
 
 # 窗口
@@ -87,6 +113,7 @@ class ActionRe(QWidget):
         self.logger = logger
         self.__showSkeleton = True
         self.__data = None
+        self.__cViewPanel = CaptureViewPanel()
         self.initUI()
 
     def initUI(self):
@@ -122,11 +149,13 @@ class ActionRe(QWidget):
         :return: 无
         '''
         # 先处理右侧小图
-        CaptureView.clearViews()
-        imgs = self.cutImage(data['img'], data['boundingBox'])
-        nameAndActioins = data['nameAndAction']
-        for img, tags in zip(imgs, nameAndActioins):
-            CaptureView(self, Image.fromarray(img).toqpixmap(), *tags).show()
+        cData = {
+            "parent": self,
+            "img": self.cutImage(data['img'], data['boundingBox']),
+            "nameAndAction": data['nameAndAction'],
+            "pos": [(960, i*90) for i in range(len(data['img']))]
+        }
+        self.__cViewPanel.setData(cData)
         # 处理大图
         img = data['img'].copy()
         if self.__showSkeleton:
@@ -145,6 +174,9 @@ class ActionRe(QWidget):
         return imgNdarray
 
     def cutImage(self, imgNdarray, boundingBoxs):
+        """
+        :return: [np.ndarray,]
+        """
         cuts = []
         for boundingBox in boundingBoxs:
             top, left, width, height = boundingBox

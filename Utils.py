@@ -38,8 +38,8 @@ def getLocalData():
         i += 1
         return {'img_b': img_b,
                 'pose': pose,
-                'boundingBox': [[39, 917, 336, 886]]*5,
-                'nameAndAction': [['葛某', '走']]*5}
+                'boundingBox': [[39, 917, 336, 886]]*(i % 5 + 1),
+                'nameAndAction': [['葛某', '走']]*(i % 5 + 1)}
     return iner
 
 
