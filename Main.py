@@ -135,6 +135,12 @@ class ActionRe(QWidget):
         self.lb.setPixmap(pix)
 
     def drawPose(self, imgNdarray: np.ndarray, pose: np.ndarray):
+        """
+        Draw skeleton on the input image, which will be altered inplace and returned
+        :param imgNdarray: np.ndarray
+        :param pose: np.ndarray
+        :return: np.ndarray
+        """
         imgNdarray = Visualization.render(imgNdarray, pose, Visualization.RENDER_CONFIG_OPENPOSE, True)
         return imgNdarray
 
