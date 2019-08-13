@@ -53,8 +53,9 @@ class Controller(QObject):
                     'nameAndAction': [['葛某', '走'], ['葛某', '走']]
                     }
         :return:{
-                'img': ndarray(根据self.__poseEnable决定，画上姿态的图片 or 原图),
-                'boundingBox': [ndarray(未画上姿态的框内图片), ndarray(未画上姿态的框内图片)],
+                'img': ndarray,
+                'pose': ndarray,
+                'boundingBox': [[39, 917, 336, 886], [39, 917, 336, 886]],
                 'nameAndAction': [['葛某', '走'], ['葛某', '走']]
                 }
         '''

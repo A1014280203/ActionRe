@@ -86,6 +86,7 @@ class ActionRe(QWidget):
         self.btn.clicked.connect(self.buttonClicked)
         self.logger = logger
         self.__showSkeleton = True
+        self.__data = None
         self.initUI()
 
     def initUI(self):
@@ -105,18 +106,18 @@ class ActionRe(QWidget):
 
         :return: 无
         '''
-        data = self.__model.getData()
+        self.__data = self.__model.getData()
 
-        self.updataUI(data)
+        self.updataUI(self.__data)
 
     def updataUI(self, data):
         ''' 更新界面中的内容
 
         :param data:{
-                    'img': ndarray,
-                    'pose': ndarray,
-                    'boundingBox': [Rect[]],
-                    'nameAndAction': [['葛某', '走']]
+                'img': ndarray,
+                'pose': ndarray,
+                'boundingBox': [[39, 917, 336, 886], [39, 917, 336, 886]],
+                'nameAndAction': [['葛某', '走'], ['葛某', '走']]
                 }
         :return: 无
         '''
@@ -127,9 +128,10 @@ class ActionRe(QWidget):
         for img, tags in zip(imgs, nameAndActioins):
             CaptureView(self, Image.fromarray(img).toqpixmap(), *tags).show()
         # 处理大图
+        img = data['img'].copy()
         if self.__showSkeleton:
-            self.drawPose(data['img'], data['pose'])
-        pix = Image.fromarray(data['img']).toqpixmap()
+            self.drawPose(img, data['pose'])
+        pix = Image.fromarray(img).toqpixmap()
         self.lb.setPixmap(pix)
 
     def drawPose(self, imgNdarray: np.ndarray, pose: np.ndarray):
@@ -149,11 +151,11 @@ class ActionRe(QWidget):
         if pressed:
             self.__showSkeleton = False
             self.btn.setText('show skeleton')
-            self.getData()
+            self.updataUI(self.__data)
         else:
             self.__showSkeleton = True
             self.btn.setText('no skeleton')
-            self.getData()
+            self.updataUI(self.__data)
 
 
 if __name__ == '__main__':
