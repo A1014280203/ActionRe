@@ -10,6 +10,7 @@ import time
 from MyLog import logging, QPlainTextEditLogger
 import Visualization
 import numpy as np
+from itertools import zip_longest
 
 
 # 自定义组件
@@ -49,6 +50,12 @@ class CaptureView(QFrame):
         self.__viewTagPer.setText(per)
         self.__viewTagAc.setText(ac)
 
+    def setData(self, parent, img: QPixmap, tags):
+        self.setParent(parent)
+        self.setImage(img)
+        self.setTags(*tags)
+        self.show()
+
     def setRemoveFlag(self):
         # CaptureView.__viewsCount -= 1
         # self.setParent(None)
@@ -72,17 +79,11 @@ class CaptureViewPanel(object):
                 }
         :return:
         """
-
-        for v, img, tags in zip(self.__views, data['img'], data['nameAndAction']):
-            v.setParent(data['parent'])
-            v.setImage(Image.fromarray(img).toqpixmap())
-            v.setTags(*tags)
-            v.show()
-        if len(data['img']) < len(self.__views):
-            for v in self.__views[len(data['img']):]:
-                v.hide()
-        if len(data['img']) > len(self.__views):
-            for img, tags in zip(data['img'][len(self.__views):], data['nameAndAction'][len(self.__views):]):
+        [v.hide() for v in self.__views]
+        for v, img, tags in zip_longest(self.__views, data['img'], data['nameAndAction'], fillvalue=None):
+            if v and img is not None:
+                v.setData(data['parent'], Image.fromarray(img).toqpixmap(), tags)
+            elif img is not None:
                 v = CaptureView(data['parent'], Image.fromarray(img).toqpixmap(), *tags)
                 v.show()
                 self.__views.append(v)
