@@ -4,5 +4,5 @@
 
 \- No, I'm Mary
 
-\- Oh! Sorry.
+\- Oh, Sorry.
 
