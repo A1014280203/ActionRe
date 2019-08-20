@@ -1,7 +1,7 @@
 # coding=utf-8
 import sys
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFrame, QPushButton
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QPalette, QBrush
 from Controller import Controller
 from PyQt5.QtCore import pyqtSignal
 from Model import Model
@@ -30,9 +30,14 @@ class CaptureView(QFrame):
         self.__viewImg.setGeometry(20, 15, 60, 60)
         self.__viewTagPer.setGeometry(90, 20, 50, 20)
         self.__viewTagAc.setGeometry(90, 50, 50, 20)
+        # todo: background img
+        self.setStyleSheet("CaptureView{border-image: url(./static/vb.png)}")
+        self.__viewImg.setStyleSheet("background-color: transparent")
+        self.__viewTagPer.setStyleSheet("background-color: rgba(76,110,136,0);color:white;font-size")
+        # self.__viewTagPer.setStyleSheet("border-image: url(./vb.png);color:white")
+        self.__viewTagAc.setStyleSheet("background-color: rgba(76,110,136,0);color:white")
+        # self.__viewTagAc.setStyleSheet("border-image: url(./vb.png);color:white")
         self.resize(160, 90)
-        # y = (CaptureView.__viewsCount - 1) * 90
-        # self.setGeometry(960, y, 160, 90)
 
     def setImage(self, img: QPixmap = None):
         if img is None:
@@ -115,6 +120,7 @@ class ActionRe(QWidget):
         self.__showSkeleton = True
         self.__data = None
         self.__cViewPanel = CaptureViewPanel()
+        self.pale = QPalette()
         self.initUI()
 
     def initUI(self):
@@ -126,6 +132,11 @@ class ActionRe(QWidget):
 
         self.btn.setCheckable(True)
         self.btn.setGeometry(20, 570, 150, 40)
+
+        # todo: background img
+        # self.pale.setBrush(self.backgroundRole(), QBrush(QPixmap("./b_1.jpg")))
+        # self.setPalette(self.pale)
+
         # log example
         self.logger.info('from {0}'.format(self.__class__.__name__))
 
@@ -186,7 +197,6 @@ class ActionRe(QWidget):
         return cuts
 
     def buttonClicked(self, pressed):
-        # self.view2Contr.emit("alterPoseState", self.btn.text())
         if pressed:
             self.__showSkeleton = False
             self.btn.setText('show skeleton')

@@ -32,7 +32,7 @@ class Controller(QObject):
         :param msg: 暂时用不到
         :return: 无
         '''
-        self.__timer.start(25, self)
+        self.__timer.start(1000, self)
 
     def onSetData(self):
         ''' 获取数据，并更新model的数据

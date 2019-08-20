@@ -32,15 +32,32 @@ def getLocalData():
         nonlocal imgs, i, poses
         if i >= len(imgs):
             i = 0
-        with open('./data/20_imga/'+imgs[i], 'rb') as fr:
+        with open('./data/20_imga/' + imgs[i], 'rb') as fr:
             img_b = fr.read()
+        x, y, w, h = where2Cut(poses[0, :2, i, :])
         pose = poses[0, :2, i, :].transpose(1, 0)
         i += 1
         return {'img_b': img_b,
                 'pose': pose,
-                'boundingBox': [[39, 917, 336, 886]]*(i % 5 + 1),
-                'nameAndAction': [['葛某', '走']]*(i % 5 + 1)}
+                'boundingBox': [[y, x, w, h]] * (i % 5 + 1),
+                'nameAndAction': [['葛某', '走']] * (i % 5 + 1)}
+
     return iner
+
+
+def where2Cut(a: [[], []]):
+    x, y = int(min(a[0]) * 1920), int(min(a[1]) * 1080)
+    w = int((max(a[0]) - min(a[0])) * 1920)
+    h = int((max(a[1]) - min(a[1])) * 1080)
+    offsetX = 100
+    offsetY = 50
+    x = x - offsetX if x - offsetX > 0 else 0
+    y = y - offsetY if y - offsetY > 0 else 0
+    w = w + 2 * offsetX if x + w + 2 * offsetX < 1920 else 0
+    h = h + 2 * offsetY if y + h + 2 * offsetY < 1080 else 0
+
+    w, h = max(w, h), max(w, h)
+    return x, y, w, h
 
 
 # for test
