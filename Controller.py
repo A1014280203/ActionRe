@@ -4,8 +4,6 @@ import Utils
 from PyQt5.QtCore import QObject
 import cv2
 import numpy as np
-# for tmp
-from tmp import t
 
 
 class Controller(QObject):
