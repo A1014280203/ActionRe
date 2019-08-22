@@ -115,7 +115,9 @@ class ActionRe(QWidget):
         self.lb = QLabel(self)
 
         self.btn = QPushButton('no skeleton', self)
+        self.btn.hide()
         self.btn.clicked.connect(self.buttonClicked)
+
         self.logger = logger
         self.__showSkeleton = True
         self.__data = None
@@ -124,9 +126,11 @@ class ActionRe(QWidget):
         self.initUI()
 
     def initUI(self):
+        self.setStyleSheet("ActionRe{background-color:black}")
         self.resize(1120, 630)
         self.lb.setLineWidth(0)
-        self.lb.setGeometry(0, 0, 960, 540)
+        # self.lb.setGeometry(0, 0, 960, 540)
+        self.lb.setGeometry(0, 0, 1920, 1080)
         self.lb.setStyleSheet("border: 0px")
         self.lb.setScaledContents(True)
 
@@ -134,9 +138,8 @@ class ActionRe(QWidget):
         self.btn.setGeometry(20, 570, 150, 40)
 
         # todo: background img
-        # self.pale.setBrush(self.backgroundRole(), QBrush(QPixmap("./b_1.jpg")))
+        # self.pale.setBrush(self.backgroundRole(), QBrush(pix))
         # self.setPalette(self.pale)
-
         # log example
         self.logger.info('from {0}'.format(self.__class__.__name__))
 
@@ -161,13 +164,13 @@ class ActionRe(QWidget):
         :return: 无
         '''
         # 先处理右侧小图
-        cData = {
-            "parent": self,
-            "img": self.cutImage(data['img'], data['boundingBox']),
-            "nameAndAction": data['nameAndAction'],
-            "pos": [(960, i*90) for i in range(len(data['img']))]
-        }
-        self.__cViewPanel.setData(cData)
+        # cData = {
+        #     "parent": self,
+        #     "img": self.cutImage(data['img'], data['boundingBox']),
+        #     "nameAndAction": data['nameAndAction'],
+        #     "pos": [(960, i*90) for i in range(len(data['img']))]
+        # }
+        # self.__cViewPanel.setData(cData)
         # 处理大图
         img = data['img'].copy()
         if self.__showSkeleton:
@@ -195,6 +198,16 @@ class ActionRe(QWidget):
             img_cut = imgNdarray[top:top + height, left:left + width]
             cuts.append(img_cut)
         return cuts
+
+    def resizeEvent(self, a0) -> None:
+        ratioW = self.width()/1920
+        ratioH = self.height()/1080
+        a = min(ratioW, ratioH)
+        w = int(1920*a)
+        h = int(1080*a)
+        x = int((self.width() - w)/2)
+        y = int((self.height() - h)/2)
+        self.lb.setGeometry(x, y, w, h)
 
     def buttonClicked(self, pressed):
         if pressed:

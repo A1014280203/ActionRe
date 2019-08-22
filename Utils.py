@@ -2,10 +2,13 @@
 import requests
 import numpy as np
 import os
+import cv2
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
 
 URL = 'https://p2-1252380913.cos.ap-shanghai.myqcloud.com/sample.jpg'
+
+capture = cv2.VideoCapture(0)
 
 
 def fetchData():
@@ -66,12 +69,15 @@ fetchData = getLocalData()
 
 
 if __name__ == '__main__':
-    # import cv2
-    #
-    # img_b = get_data()['img_b']
-    # img_np = np.frombuffer(img_b, dtype=np.uint8)
-    # img_cv = cv2.imdecode(img_np, cv2.IMREAD_ANYCOLOR)
-    # img_clip = img_cv[39:39+886, 917:917+336]
-    b = getLocalData()()
-    print(b)
-    print('a')
+    while capture.isOpened():
+        # 获取一帧
+        ret, frame = capture.read()
+        print(capture.get(5))
+        if ret:
+            cv2.imshow('frame', frame)
+        else:
+            break
+        if cv2.waitKey(1) == ord('q'):
+            break
+    capture.release()
+    cv2.destroyAllWindows()

@@ -4,6 +4,8 @@ import Utils
 from PyQt5.QtCore import QObject
 import cv2
 import numpy as np
+# for tmp
+from tmp import t
 
 
 class Controller(QObject):
@@ -28,11 +30,9 @@ class Controller(QObject):
 
     def startTimer(self, msg):
         ''' 开启定时器
-
         :param msg: 暂时用不到
-        :return: 无
         '''
-        self.__timer.start(1000, self)
+        self.__timer.start(40, self)
 
     def onSetData(self):
         ''' 获取数据，并更新model的数据
@@ -41,6 +41,10 @@ class Controller(QObject):
         '''
         data = Utils.fetchData()
         processedData = self.processData(data)
+        # for tmp
+        if Utils.capture.isOpened():
+            ret, frame = Utils.capture.read()
+            processedData["img"] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         self.__model.setData(processedData)
 
     def processData(self, data):
