@@ -30,7 +30,7 @@ class Controller(QObject):
         ''' 开启定时器
         :param msg: 暂时用不到
         '''
-        self.__timer.start(40, self)
+        self.__timer.start(33, self)
 
     def onSetData(self):
         ''' 获取数据，并更新model的数据
@@ -42,7 +42,10 @@ class Controller(QObject):
         # for tmp
         if Utils.capture.isOpened():
             ret, frame = Utils.capture.read()
-            processedData["img"] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            Utils.BehaviorRecord.setFps(Utils.capture.get(5))
+            Utils.BehaviorRecord.record(processedData["nameAndAction"])
+            if ret:
+                processedData["img"] = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         self.__model.setData(processedData)
 
     def processData(self, data):
